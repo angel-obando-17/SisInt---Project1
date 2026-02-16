@@ -75,7 +75,7 @@ def tinyMazeSearch(problem: SearchProblem) -> List[Directions]:
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def depthFirstSearch(problem: SearchProblem) -> List[Directions]:
+def depthFirstSearch( problem: SearchProblem ) -> List[ Directions ]:
     """
     Search the deepest nodes in the search tree first.
 
@@ -84,23 +84,46 @@ def depthFirstSearch(problem: SearchProblem) -> List[Directions]:
 
     To get started, you might want to try some of these simple commands to
     understand the search problem that is being passed in:
-
+    
     print("Start:", problem.getStartState())
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    stack = util.Stack( )
+    visited = set( )
 
-def breadthFirstSearch(problem: SearchProblem) -> List[Directions]:
+    start = problem.getStartState( )
+
+    stack.push( ( start, [ ] ) )
+
+    goal = False
+    directions = [ ]
+
+    while not stack.isEmpty( ) and not goal:
+        state, path = stack.pop( )
+        if state not in visited:
+            visited.add( state )
+            if problem.isGoalState( state ):
+                goal = True
+                directions = path
+            else:
+                successors = problem.getSuccessors( state )
+                for successor, action, stepCost in successors:
+                    next_path = path + [ action ]
+                    stack.push( ( successor, next_path ) )
+
+    return directions
+
+def breadthFirstSearch( problem: SearchProblem ) -> List[ Directions ]:
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    util.raiseNotDefined( )
 
-def uniformCostSearch(problem: SearchProblem) -> List[Directions]:
+def uniformCostSearch( problem: SearchProblem ) -> List[ Directions ]:
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    util.raiseNotDefined( )
 
 def nullHeuristic(state, problem=None) -> float:
     """
@@ -109,10 +132,10 @@ def nullHeuristic(state, problem=None) -> float:
     """
     return 0
 
-def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic) -> List[Directions]:
+def aStarSearch( problem: SearchProblem, heuristic=nullHeuristic ) -> List[ Directions ]:
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    util.raiseNotDefined( )
 
 # Abbreviations
 bfs = breadthFirstSearch
