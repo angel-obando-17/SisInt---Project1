@@ -118,6 +118,7 @@ def depthFirstSearch( problem: SearchProblem ) -> List[ Directions ]:
 def breadthFirstSearch( problem: SearchProblem ) -> List[ Directions ]:
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
+    a =5
     util.raiseNotDefined( )
 
 def uniformCostSearch( problem: SearchProblem ) -> List[ Directions ]:
