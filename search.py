@@ -144,7 +144,38 @@ def breadthFirstSearch( problem: SearchProblem ) -> List[ Directions ]:
 def uniformCostSearch( problem: SearchProblem ) -> List[ Directions ]:
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined( )
+    frontera = util.PriorityQueue()
+    estadoInicial = problem.getStartState() # Se obtiene el estado inicial del problema
+
+    # Se inserta en la frontera: (estado, lista_de_acciones, costo_acumulado) con prioridad 0
+    frontera.push( (estadoInicial, [], 0), 0 )
+    visitados = set()
+    while not frontera.isEmpty():
+
+        # Se extrae el nodo con el menor costo acumulado
+        estado, acciones, costoAcumulado = frontera.pop()
+
+        if estado in visitados:
+            continue
+
+        visitados.add( estado )
+
+        if problem.isGoalState( estado ):
+            return acciones
+
+        # Se expanden los sucesores del estado actual
+        for sucesor, accion, costoPaso in problem.getSuccessors( estado ):
+
+            if sucesor not in visitados:
+
+                nuevoCosto = costoAcumulado + costoPaso  # Se calcula el nuevo costo acumulado sumando el costo del paso actual
+
+                # Se inserta el sucesor en la frontera con su costo acumulado como prioridad
+                frontera.push(
+                    ( sucesor, acciones + [accion], nuevoCosto ),
+                    nuevoCosto  # La prioridad es el costo total acumulado hasta este nodo
+                )
+    return []     # Si se agotó la frontera sin encontrar la meta, se retorna lista vacía (sin solución)
 
 def nullHeuristic(state, problem=None) -> float:
     """
