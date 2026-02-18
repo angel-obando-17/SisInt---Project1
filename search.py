@@ -145,7 +145,7 @@ def uniformCostSearch( problem: SearchProblem ) -> List[ Directions ]:
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
     frontera = util.PriorityQueue()
-    estadoInicial = problem.getStartState() # Se obtiene el estado inicial del problema
+    estadoInicial = problem.getStartState() 
 
     # Se inserta en la frontera: (estado, lista_de_acciones, costo_acumulado) con prioridad 0
     frontera.push( (estadoInicial, [], 0), 0 )
@@ -175,7 +175,7 @@ def uniformCostSearch( problem: SearchProblem ) -> List[ Directions ]:
                     ( sucesor, acciones + [accion], nuevoCosto ),
                     nuevoCosto  # La prioridad es el costo total acumulado hasta este nodo
                 )
-    return []     # Si se agotó la frontera sin encontrar la meta, se retorna lista vacía (sin solución)
+    return []     # Si no se encontra la meta, se retorna lista vacía (sin solución)
 
 def nullHeuristic(state, problem=None) -> float:
     """
@@ -187,7 +187,61 @@ def nullHeuristic(state, problem=None) -> float:
 def aStarSearch( problem: SearchProblem, heuristic=nullHeuristic ) -> List[ Directions ]:
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined( )
+    # A* es como UCS pero la prioridad es f(n) = g(n) + h(n)
+    # donde g(n) es el costo acumulado del camino recorrido
+    # y h(n) es la estimación heurística al objetivo
+
+    frontera = util.PriorityQueue()
+    estadoInicial = problem.getStartState()
+
+    # Calcular la heurística del estado inicial
+    hInicial = heuristic( estadoInicial, problem )
+
+    # Insertar en la frontera: (estado, acciones, costo_g) con prioridad f = g + h
+    frontera.push( ( estadoInicial, [], 0 ), hInicial )
+
+    # Diccionario que guarda el menor costo g con el que se expandió cada estado.
+    # Esto permite re-expandir un estado si se descubre un camino más barato
+    # (necesario cuando la heurística es inconsistente/no monótona).
+    mejorCostoG = {}
+
+    while not frontera.isEmpty():
+
+        # Extraer el nodo con menor f(n) = g(n) + h(n)
+        estado, acciones, costoG = frontera.pop()
+
+        # Si este estado ya fue expandido con un costo g igual o menor, lo omitimos.
+        # Si el nuevo costoG es menor, significa que hallamos un camino más barato
+        # y debemos re-expandir el estado (condición para heurísticas inconsistentes).
+        if estado in mejorCostoG and costoG >= mejorCostoG[ estado ]:
+            continue
+
+        # Registrar el mejor costo g conocido para este estado
+        mejorCostoG[ estado ] = costoG
+
+        if problem.isGoalState( estado ):
+            return acciones
+
+        # Expandir los sucesores del estado actual
+        for sucesor, accion, costoPaso in problem.getSuccessors( estado ):
+
+            nuevoCostoG = costoG + costoPaso #costo acumulado hasta el estado actual + costo del paso
+
+            # Solo agregar a la frontera si encontramos un camino más barato al sucesor
+            if sucesor not in mejorCostoG or nuevoCostoG < mejorCostoG[ sucesor ]:
+
+                # h(sucesor) = estimación heurística desde el sucesor al objetivo
+                hSucesor = heuristic( sucesor, problem )
+
+                # f(sucesor) = g(sucesor) + h(sucesor)
+                prioridad = nuevoCostoG + hSucesor
+
+                frontera.push(
+                    ( sucesor, acciones + [accion], nuevoCostoG ),
+                    prioridad
+                )
+
+    return []  # Si no se encontró la meta, retornar lista vacía (sin solución)
 
 # Abbreviations
 bfs = breadthFirstSearch
