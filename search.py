@@ -75,7 +75,7 @@ def tinyMazeSearch(problem: SearchProblem) -> List[Directions]:
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def depthFirstSearch( problem: SearchProblem ) -> List[ Directions ]:
+def depthFirstSearch(problem: SearchProblem) -> List[Directions]:
     """
     Search the deepest nodes in the search tree first.
 
@@ -84,98 +84,127 @@ def depthFirstSearch( problem: SearchProblem ) -> List[ Directions ]:
 
     To get started, you might want to try some of these simple commands to
     understand the search problem that is being passed in:
-    
+
     print("Start:", problem.getStartState())
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    stack = util.Stack( )
-    visited = set( )
+    stack = util.Stack()
+    visited = set()
+    parent = dict()
 
-    start = problem.getStartState( )
+    start = problem.getStartState()
+    stack.push(start)
 
-    stack.push( ( start, [ ] ) )
-
+    term = None
     goal = False
-    directions = [ ]
 
-    while not stack.isEmpty( ) and not goal:
-        state, path = stack.pop( )
-        if state not in visited:
-            visited.add( state )
-            if problem.isGoalState( state ):
-                goal = True
-                directions = path
-            else:
-                successors = problem.getSuccessors( state )
-                for successor, action, stepCost in successors:
-                    next_path = path + [ action ]    
-                    stack.push( ( successor, next_path ) )
+    while not stack.isEmpty() and not goal:
+        u = stack.pop()
 
-    return directions
-
-def breadthFirstSearch( problem: SearchProblem ) -> List[ Directions ]:
-    """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    queue = util.Queue( )
-    visited = set( )
-
-    start = problem.getStartState( )
-    queue.push( ( start, [ ] ) )
-    goal = False
-    directions = [ ]
-
-    while not queue.isEmpty( ) and not goal:
-        state, path = queue.pop( )
-        if state not in visited:
-            visited.add( state )
-            if problem.isGoalState( state ):
-                goal = True
-                directions = path
-            else:
-                succesors = problem.getSuccessors( state )
-                for succesor, action, stepCost in succesors:
-                    next_path = path + [ action ]
-                    queue.push( ( succesor, next_path ) )
-    
-    return directions
-
-def uniformCostSearch( problem: SearchProblem ) -> List[ Directions ]:
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    frontera = util.PriorityQueue()
-    estadoInicial = problem.getStartState() 
-
-    # Se inserta en la frontera: (estado, lista_de_acciones, costo_acumulado) con prioridad 0
-    frontera.push( (estadoInicial, [], 0), 0 )
-    visitados = set()
-    while not frontera.isEmpty():
-
-        # Se extrae el nodo con el menor costo acumulado
-        estado, acciones, costoAcumulado = frontera.pop()
-
-        if estado in visitados:
+        if u in visited:
             continue
 
-        visitados.add( estado )
+        visited.add(u)
+        if problem.isGoalState(u):
+            term = u
+            goal = True
+        else:
+            successors = problem.getSuccessors(u)
+            for v, act, _ in successors:
+                if v not in visited:
+                    parent[v] = (u, act)
+                    stack.push(v)
 
-        if problem.isGoalState( estado ):
-            return acciones
+    path = []
+    if goal:
+        u = term
+        while u != start:
+            u, act = parent[u]
+            path.append(act)
+        path.reverse()
 
-        # Se expanden los sucesores del estado actual
-        for sucesor, accion, costoPaso in problem.getSuccessors( estado ):
+    return path
+  
 
-            if sucesor not in visitados:
+def breadthFirstSearch(problem: SearchProblem) -> List[Directions]:
+    """Search the shallowest nodes in the search tree first."""
+    "*** YOUR CODE HERE ***"
+    queue = util.Queue()
+    visited = set()
+    parent = dict()
 
-                nuevoCosto = costoAcumulado + costoPaso  # Se calcula el nuevo costo acumulado sumando el costo del paso actual
+    start = problem.getStartState()
+    queue.push(start)
+    visited.add(start)
 
-                # Se inserta el sucesor en la frontera con su costo acumulado como prioridad
-                frontera.push(
-                    ( sucesor, acciones + [accion], nuevoCosto ),
-                    nuevoCosto  # La prioridad es el costo total acumulado hasta este nodo
-                )
-    return []     # Si no se encontra la meta, se retorna lista vacía (sin solución)
+    term = None
+    goal = False
+
+    while not queue.isEmpty() and not goal:
+        u = queue.pop()
+
+        if problem.isGoalState(u):
+            term = u
+            goal = True
+        else:
+            successors = problem.getSuccessors(u)
+            for v, act, _ in successors:
+                if v not in visited:
+                    visited.add(v)
+                    parent[v] = (u, act)
+                    queue.push(v)
+
+    path = []
+    if goal:
+        u = term
+        while u != start:
+            u, act = parent[u]
+            path.append(act)
+        path.reverse()
+
+    return path
+    
+
+def uniformCostSearch(problem: SearchProblem) -> List[Directions]:
+    """Search the node of least total cost first."""
+    "*** YOUR CODE HERE ***"
+    pqueue = util.PriorityQueue()
+    parent = dict()
+    dist = dict()
+
+    start = problem.getStartState()
+
+    dist[start] = 0
+    pqueue.push((dist[start], start), dist[start])
+
+    term = None
+    goal = False
+
+    while not pqueue.isEmpty() and not goal:
+        du, u = pqueue.pop()
+
+        if problem.isGoalState(u):
+            term = u
+            goal = True
+        elif du == dist[u]:
+            successors = problem.getSuccessors(u)
+            for v, act, duv in successors:
+                if not v in dist or du + duv < dist[v]:
+                    dist[v] = du + duv
+                    parent[v] = (u, act)
+                    pqueue.push((dist[v], v), dist[v])
+
+    path = []
+    if goal:
+        u = term
+        while u != start:
+            u, act = parent[u]
+            path.append(act)
+        path.reverse()
+
+    return path
 
 def nullHeuristic(state, problem=None) -> float:
     """
@@ -184,64 +213,45 @@ def nullHeuristic(state, problem=None) -> float:
     """
     return 0
 
-def aStarSearch( problem: SearchProblem, heuristic=nullHeuristic ) -> List[ Directions ]:
+def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic) -> List[Directions]:
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    # A* es como UCS pero la prioridad es f(n) = g(n) + h(n)
-    # donde g(n) es el costo acumulado del camino recorrido
-    # y h(n) es la estimación heurística al objetivo
+    pqueue = util.PriorityQueue()
+    parent = dict()
+    dist = dict()
 
-    frontera = util.PriorityQueue()
-    estadoInicial = problem.getStartState()
+    start = problem.getStartState()
+    dist[start] = 0
 
-    # Calcular la heurística del estado inicial
-    hInicial = heuristic( estadoInicial, problem )
+    f = dist[start] + heuristic(start, problem)
 
-    # Insertar en la frontera: (estado, acciones, costo_g) con prioridad f = g + h
-    frontera.push( ( estadoInicial, [], 0 ), hInicial )
+    pqueue.push((dist[start], start), f)
 
-    # Diccionario que guarda el menor costo g con el que se expandió cada estado.
-    # Esto permite re-expandir un estado si se descubre un camino más barato
-    # (necesario cuando la heurística es inconsistente/no monótona).
-    mejorCostoG = {}
+    term = None
+    goal = False
 
-    while not frontera.isEmpty():
+    while not pqueue.isEmpty() and not goal:
+        du, u = pqueue.pop()
+        if problem.isGoalState(u):
+            term = u
+            goal = True
+        elif du == dist[u]:
+            successors = problem.getSuccessors(u)
+            for v, act, duv in successors:
+                if not v in dist or du + duv < dist[v]:
+                    dist[v] = du + duv
+                    parent[v] = (u, act)
+                    f = dist[v] + heuristic(v, problem)
+                    pqueue.push((dist[v], v), f)
+    path = []
+    if goal:
+        u = term
+        while u != start:
+            u, act = parent[u]
+            path.append(act)
+        path.reverse()
 
-        # Extraer el nodo con menor f(n) = g(n) + h(n)
-        estado, acciones, costoG = frontera.pop()
-
-        # Si este estado ya fue expandido con un costo g igual o menor, lo omitimos.
-        # Si el nuevo costoG es menor, significa que hallamos un camino más barato
-        # y debemos re-expandir el estado (condición para heurísticas inconsistentes).
-        if estado in mejorCostoG and costoG >= mejorCostoG[ estado ]:
-            continue
-
-        # Registrar el mejor costo g conocido para este estado
-        mejorCostoG[ estado ] = costoG
-
-        if problem.isGoalState( estado ):
-            return acciones
-
-        # Expandir los sucesores del estado actual
-        for sucesor, accion, costoPaso in problem.getSuccessors( estado ):
-
-            nuevoCostoG = costoG + costoPaso #costo acumulado hasta el estado actual + costo del paso
-
-            # Solo agregar a la frontera si encontramos un camino más barato al sucesor
-            if sucesor not in mejorCostoG or nuevoCostoG < mejorCostoG[ sucesor ]:
-
-                # h(sucesor) = estimación heurística desde el sucesor al objetivo
-                hSucesor = heuristic( sucesor, problem )
-
-                # f(sucesor) = g(sucesor) + h(sucesor)
-                prioridad = nuevoCostoG + hSucesor
-
-                frontera.push(
-                    ( sucesor, acciones + [accion], nuevoCostoG ),
-                    prioridad
-                )
-
-    return []  # Si no se encontró la meta, retornar lista vacía (sin solución)
+    return path
 
 # Abbreviations
 bfs = breadthFirstSearch
